@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SpeechToTextApplication<speech-to-text>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "au.edu.adelaide.speech_to_text.SpeechToTextApplication",
+            "projectName": "speech-to-text",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
