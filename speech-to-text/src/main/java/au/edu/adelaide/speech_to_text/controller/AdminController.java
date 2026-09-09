@@ -1,4 +1,4 @@
-package au.edu.adelaide.speech_to_text.model;
+package au.edu.adelaide.speech_to_text.controller;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -10,6 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin")
 public class AdminController {
+
+    public record UptimeResponse(
+            Instant serverStartTime,
+            Instant currentTime,
+            double uptimeSeconds
+    ) {}
 
     private final Instant serverStartTime;
 
