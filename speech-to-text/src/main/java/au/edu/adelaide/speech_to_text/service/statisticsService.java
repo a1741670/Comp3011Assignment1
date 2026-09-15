@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class StatisticsService {
-
+// Atomic Long allows token count to be updated safely.
     private final AtomicLong inputTokens = new AtomicLong(0);
     private final AtomicLong outputTokens = new AtomicLong(0);
 

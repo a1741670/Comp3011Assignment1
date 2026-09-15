@@ -21,11 +21,12 @@ public class TranscriptionService {
     private final OpenAIClient openAIClient;
 
     public TranscriptionService() {
+        // Uses the provided OpenAI API key.
         openAIClient = OpenAIOkHttpClient.fromEnv();
     }
 
     public String transcribe(MultipartFile audioFile) throws IOException {
-
+// Creates temporary file to store the audio file
         Path temporaryFile = Files.createTempFile(
                 "speech-to-text-",
                 ".webm"
@@ -72,7 +73,7 @@ public class TranscriptionService {
             throw e;
 
         } finally {
-
+            // Deletes the temporary file after transcription is complete
             Files.deleteIfExists(temporaryFile);
         }
     }

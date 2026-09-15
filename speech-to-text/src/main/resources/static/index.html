@@ -133,7 +133,7 @@
         async function startRecording() {
 
             try {
-
+<!-- Request permisions to use microphone. -->
                 mediaStream =
                     await navigator.mediaDevices.getUserMedia({
                         audio: true
@@ -230,9 +230,7 @@
             startButton.disabled = true;
 
 
-            /*
-             * Release the microphone.
-             */
+            <!-- Release the microphone after recording. -->
             if (mediaStream) {
 
                 mediaStream.getTracks().forEach(

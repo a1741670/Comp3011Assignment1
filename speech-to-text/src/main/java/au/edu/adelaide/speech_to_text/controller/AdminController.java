@@ -1,3 +1,6 @@
+// AI was used to create the architecture and design of this code.
+// AI was used to help with the transciption service implementation to ensure the audio file was properly handled and set to OpenAI API.
+
 package au.edu.adelaide.speech_to_text.controller;
 
 import java.time.Duration;
@@ -63,7 +66,7 @@ public class AdminController {
 
     @PostMapping("/admin/shutdown")
     public ResponseEntity<?> shutdownServer() {
-
+// Checks if a shutdown has already been requested. If so, returns a 409 Conflict response.
         if (!shutdownRequested.compareAndSet(false, true)) {
 
             errorResponse errorResponse = new errorResponse(
