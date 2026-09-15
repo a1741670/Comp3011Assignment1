@@ -11,7 +11,10 @@ import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.audio.transcriptions.TranscriptionCreateParams;
 import com.openai.models.audio.transcriptions.TranscriptionCreateResponse;
-
+// AI was used to help write this code. The AI was prompted to write a transcription service that uses the OpenAI API to transcribe audio files. 
+// The AI was given the following prompt: "Write a Java service class that uses the OpenAI API to transcribe audio files. 
+// The service should have a method that takes a MultipartFile as input, saves it to a temporary file, sends it to the OpenAI API for transcription, and returns the transcribed text. 
+// The service should handle any exceptions that may occur during the process and ensure that the temporary file is deleted after the transcription is complete.
 @Service
 public class TranscriptionService {
 
@@ -50,6 +53,8 @@ public class TranscriptionService {
                             .create(params);
 
             System.out.println("OpenAI transcription response received.");
+
+            
 
             String text = response.transcription()
                     .get()

@@ -15,20 +15,20 @@ import au.edu.adelaide.speech_to_text.model.errorResponse;
 import au.edu.adelaide.speech_to_text.model.globalStatsResponse;
 import au.edu.adelaide.speech_to_text.model.shutdownResponse;
 import au.edu.adelaide.speech_to_text.model.UptimeResponse;
-import au.edu.adelaide.speech_to_text.service.statisticsService;
+import au.edu.adelaide.speech_to_text.service.StatisticsService;
 
 @RestController
 @RequestMapping("/api/v1")
 public class AdminController {
 
     private final Instant serverStartTime;
-    private final statisticsService statisticsService;
+    private final StatisticsService statisticsService;
     private final ConfigurableApplicationContext applicationContext;
 
     private final AtomicBoolean shutdownRequested = new AtomicBoolean(false);
 
     public AdminController(
-            statisticsService statisticsService,
+            StatisticsService statisticsService,
             ConfigurableApplicationContext applicationContext) {
 
         this.serverStartTime = Instant.now();

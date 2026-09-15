@@ -1,5 +1,7 @@
+<!-- AI was used to fix the styling of website. -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +28,11 @@
             cursor: pointer;
         }
 
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         #status {
             margin: 25px 0;
             font-size: 18px;
@@ -35,6 +42,12 @@
             display: none;
             margin: 20px;
             font-weight: bold;
+        }
+
+        #timer {
+            display: none;
+            margin: 10px;
+            font-size: 16px;
         }
 
         #transcript {
@@ -60,6 +73,10 @@
         🔴 Recording...
     </div>
 
+    <div id="timer">
+        00:00
+    </div>
+
     <button id="startButton">
         Start Recording
     </button>
@@ -73,52 +90,104 @@
     </div>
 
     <script>
+
         let mediaRecorder;
         let audioChunks = [];
+        let mediaStream;
 
-        const startButton = document.getElementById("startButton");
-        const stopButton = document.getElementById("stopButton");
-        const status = document.getElementById("status");
+        let recordingStartTime;
+        let timerInterval;
+
+        const MAX_RECORDING_TIME = 60 * 1000;
+
+        const startButton =
+            document.getElementById("startButton");
+
+        const stopButton =
+            document.getElementById("stopButton");
+
+        const status =
+            document.getElementById("status");
+
         const recordingIndicator =
             document.getElementById("recordingIndicator");
+
+        const timer =
+            document.getElementById("timer");
+
         const transcript =
             document.getElementById("transcript");
 
-        startButton.addEventListener("click", startRecording);
-        stopButton.addEventListener("click", stopRecording);
+
+        startButton.addEventListener(
+            "click",
+            startRecording
+        );
+
+        stopButton.addEventListener(
+            "click",
+            stopRecording
+        );
+
 
         async function startRecording() {
 
             try {
 
-                const stream =
+                mediaStream =
                     await navigator.mediaDevices.getUserMedia({
                         audio: true
                     });
 
                 audioChunks = [];
 
-                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder =
+                    new MediaRecorder(mediaStream);
 
-                mediaRecorder.addEventListener("dataavailable", event => {
 
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
+                mediaRecorder.addEventListener(
+                    "dataavailable",
+                    event => {
+
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+
                     }
+                );
 
-                });
 
-                mediaRecorder.addEventListener("stop", sendAudio);
+                mediaRecorder.addEventListener(
+                    "stop",
+                    sendAudio
+                );
+
 
                 mediaRecorder.start();
 
-                status.textContent = "Recording in progress...";
-                recordingIndicator.style.display = "block";
+
+                recordingStartTime = Date.now();
+
+                startTimer();
+
+
+                status.textContent =
+                    "Recording in progress...";
+
+                recordingIndicator.style.display =
+                    "block";
+
+                timer.style.display =
+                    "block";
+
 
                 startButton.disabled = true;
+
                 stopButton.disabled = false;
 
+
                 transcript.textContent = "";
+
 
             } catch (error) {
 
@@ -127,25 +196,53 @@
                 status.textContent =
                     "Could not access the microphone.";
 
+                resetPage();
+
             }
+
         }
+
 
         function stopRecording() {
 
-            if (mediaRecorder &&
-                mediaRecorder.state !== "inactive") {
+            if (!mediaRecorder ||
+                mediaRecorder.state === "inactive") {
 
-                mediaRecorder.stop();
-
-                status.textContent =
-                    "Processing transcription...";
-
-                recordingIndicator.style.display = "none";
-
-                startButton.disabled = true;
-                stopButton.disabled = true;
+                return;
             }
+
+
+            mediaRecorder.stop();
+
+
+            stopTimer();
+
+
+            status.textContent =
+                "Processing transcription...";
+
+
+            recordingIndicator.style.display =
+                "none";
+
+            stopButton.disabled = true;
+
+            startButton.disabled = true;
+
+
+            /*
+             * Release the microphone.
+             */
+            if (mediaStream) {
+
+                mediaStream.getTracks().forEach(
+                    track => track.stop()
+                );
+
+            }
+
         }
+
 
         async function sendAudio() {
 
@@ -154,7 +251,10 @@
                     type: mediaRecorder.mimeType
                 });
 
-            const formData = new FormData();
+
+            const formData =
+                new FormData();
+
 
             formData.append(
                 "audio",
@@ -162,28 +262,64 @@
                 "recording.webm"
             );
 
+
+            /*
+             * Record the time at which the request
+             * is sent so we can measure how long
+             * transcription takes.
+             */
+            const processingStartTime =
+                Date.now();
+
+
             try {
 
-                const response = await fetch(
-                    "/api/v1/transcribe",
-                    {
-                        method: "POST",
-                        body: formData
-                    }
-                );
+                const response =
+                    await fetch(
+                        "/api/v1/transcribe",
+                        {
+                            method: "POST",
+                            body: formData
+                        }
+                    );
+
 
                 if (!response.ok) {
+
                     throw new Error(
                         "Transcription request failed."
                     );
+
                 }
 
-                const data = await response.json();
 
-                transcript.textContent = data.text;
+                const data =
+                    await response.json();
+
+
+                /*
+                 * Display the transcription immediately
+                 * after the server responds.
+                 */
+                transcript.textContent =
+                    data.text;
+
+
+                const processingTime =
+                    (Date.now() -
+                    processingStartTime) / 1000;
+
+
+                console.log(
+                    "Transcription processing time: "
+                    + processingTime.toFixed(2)
+                    + " seconds"
+                );
+
 
                 status.textContent =
                     "Ready to record again.";
+
 
             } catch (error) {
 
@@ -192,16 +328,102 @@
                 transcript.textContent =
                     "An error occurred while transcribing.";
 
+
                 status.textContent =
                     "Ready to record again.";
 
+
             } finally {
 
-                startButton.disabled = false;
-                stopButton.disabled = true;
+                /*
+                 * Always return the page to a state
+                 * where a new recording can be made.
+                 */
+                resetPage();
+
             }
+
         }
+
+
+        function resetPage() {
+
+            startButton.disabled = false;
+
+            stopButton.disabled = true;
+
+            recordingIndicator.style.display =
+                "none";
+
+            timer.style.display =
+                "none";
+
+            stopTimer();
+
+        }
+
+
+        function startTimer() {
+
+            timer.textContent =
+                "00:00";
+
+
+            timerInterval =
+                setInterval(() => {
+
+                    const elapsed =
+                        Date.now() -
+                        recordingStartTime;
+
+
+                    const seconds =
+                        Math.floor(elapsed / 1000);
+
+
+                    const minutes =
+                        Math.floor(seconds / 60);
+
+
+                    const remainingSeconds =
+                        seconds % 60;
+
+
+                    timer.textContent =
+                        String(minutes).padStart(2, "0")
+                        + ":"
+                        + String(remainingSeconds).padStart(2, "0");
+
+
+                    /*
+                     * Automatically stop after 60 seconds.
+                     */
+                    if (elapsed >= MAX_RECORDING_TIME) {
+
+                        stopRecording();
+
+                    }
+
+                }, 100);
+
+        }
+
+
+        function stopTimer() {
+
+            if (timerInterval) {
+
+                clearInterval(timerInterval);
+
+                timerInterval = null;
+
+            }
+
+        }
+
     </script>
 
 </body>
+
 </html>
+```
